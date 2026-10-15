@@ -30,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,8 +66,6 @@ import com.kyant.backdrop.shadow.InnerShadow
 import com.kyant.backdrop.shadow.Shadow
 import com.xingheyuzhuan.shiguangschedule.Destination
 import com.xingheyuzhuan.shiguangschedule.ui.theme.LocalIsDarkTheme
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.sign
@@ -94,7 +91,7 @@ internal fun LiquidGlassNavigationBar(
 
     val selectedIndex = navItems.indexOfFirst {
         currentDestination::class == it.destination::class
-    }.coerceAtLeast(0)
+    }
     val isLightTheme = !LocalIsDarkTheme.current
     val accentColor = MaterialTheme.colorScheme.primary
     val selectedContentColor = MaterialTheme.colorScheme.onSurface
@@ -130,11 +127,13 @@ internal fun LiquidGlassNavigationBar(
             }
         }
 
-        var currentIndex by remember { mutableIntStateOf(selectedIndex) }
+        var currentIndex by remember {
+            mutableIntStateOf(selectedIndex.coerceAtLeast(0))
+        }
         val dragAnimation = remember(animationScope, tabsCount, tabWidth, isLtr) {
             DampedDragAnimation(
                 animationScope = animationScope,
-                initialValue = selectedIndex.toFloat(),
+                initialValue = currentIndex.toFloat(),
                 valueRange = 0f..(tabsCount - 1).toFloat(),
                 visibilityThreshold = 0.001f,
                 initialScale = 1f,
@@ -144,6 +143,7 @@ internal fun LiquidGlassNavigationBar(
                     val targetIndex = targetValue.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
                     currentIndex = targetIndex
                     animateToValue(targetIndex.toFloat())
+                    latestOnTabSelected(navItems[targetIndex].destination)
                     animationScope.launch {
                         offsetAnimation.animateTo(0f, spring(1f, 300f, 0.5f))
                     }
@@ -160,16 +160,14 @@ internal fun LiquidGlassNavigationBar(
             )
         }
 
-        LaunchedEffect(selectedIndex) {
-            currentIndex = selectedIndex
-        }
-        LaunchedEffect(dragAnimation) {
-            snapshotFlow { currentIndex }
-                .drop(1)
-                .collectLatest { index ->
-                    dragAnimation.animateToValue(index.toFloat())
-                    latestOnTabSelected(navItems[index].destination)
-                }
+        LaunchedEffect(selectedIndex, dragAnimation) {
+            // Secondary screens are not bottom-navigation destinations. Keep the
+            // previous main-tab selection while the bar exits instead of mapping
+            // an unmatched destination to index 0 and navigating to Today.
+            if (selectedIndex >= 0 && currentIndex != selectedIndex) {
+                currentIndex = selectedIndex
+                dragAnimation.animateToValue(selectedIndex.toFloat())
+            }
         }
 
         val interactiveHighlight = remember(animationScope, tabWidth, isLtr) {
@@ -190,11 +188,17 @@ internal fun LiquidGlassNavigationBar(
 
         val tabs: @Composable RowScope.() -> Unit = {
             navItems.forEachIndexed { index, item ->
-                val isSelected = index == selectedIndex
+                val isSelected = index == currentIndex
                 LiquidNavigationTab(
                     label = item.label,
                     selected = isSelected,
-                    onClick = { currentIndex = index }
+                    onClick = {
+                        if (index != currentIndex) {
+                            currentIndex = index
+                            dragAnimation.animateToValue(index.toFloat())
+                            latestOnTabSelected(item.destination)
+                        }
+                    }
                 ) {
                     Icon(
                         imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
