@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.xingheyuzhuan.shiguangschedule.Destination
+import com.xingheyuzhuan.shiguangschedule.data.model.LiquidGlassNavigationSettings
+
+internal actual val supportsLiquidGlassNavigation: Boolean = false
 
 @Composable
 internal actual fun PlatformBottomNavigationLayout(
@@ -13,6 +16,7 @@ internal actual fun PlatformBottomNavigationLayout(
     showNavigation: Boolean,
     navHideFractionProvider: () -> Float,
     isTransparent: Boolean,
+    liquidGlassSettings: LiquidGlassNavigationSettings,
     navigationModifier: Modifier,
     content: @Composable (PaddingValues) -> Unit
 ) = DefaultBottomNavigationLayout(
@@ -22,6 +26,7 @@ internal actual fun PlatformBottomNavigationLayout(
     showNavigation,
     navHideFractionProvider,
     isTransparent,
+    liquidGlassSettings,
     navigationModifier,
     content
 )

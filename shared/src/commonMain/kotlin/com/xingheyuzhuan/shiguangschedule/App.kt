@@ -24,6 +24,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.xingheyuzhuan.shiguangschedule.data.model.StartScreen
+import com.xingheyuzhuan.shiguangschedule.data.model.LiquidGlassNavigationSettings
 import com.xingheyuzhuan.shiguangschedule.tool.ExternalFileManager
 import com.xingheyuzhuan.shiguangschedule.ui.components.AdaptiveNavigationScaffold
 import com.xingheyuzhuan.shiguangschedule.ui.schedule.WeeklyScheduleScreen
@@ -71,7 +72,10 @@ fun App() {
                     StartScreen.TODAY_SCHEDULE -> Destination.TodaySchedule
                 }
             }
-            AppNavigation(startDestination = startDest)
+            AppNavigation(
+                startDestination = startDest,
+                liquidGlassSettings = state.appSettings.liquidGlassNavigation
+            )
         }
     } else {
         Surface(modifier = Modifier.fillMaxSize()) {}
@@ -79,7 +83,10 @@ fun App() {
 }
 
 @Composable
-fun AppNavigation(startDestination: Destination) {
+fun AppNavigation(
+    startDestination: Destination,
+    liquidGlassSettings: LiquidGlassNavigationSettings = LiquidGlassNavigationSettings()
+) {
     val backStack = rememberNavBackStack(
         configuration = navSavedStateConfig,
         startDestination
@@ -127,7 +134,8 @@ fun AppNavigation(startDestination: Destination) {
         currentDestination = currentDestination,
         onTabSelected = onNavigate,
         showNavigation = currentDestination.isMainScreen,
-        navHideFractionProvider = { navHideFraction }
+        navHideFractionProvider = { navHideFraction },
+        liquidGlassSettings = liquidGlassSettings
     ) { _ ->
         NavDisplay(
             backStack = backStack,

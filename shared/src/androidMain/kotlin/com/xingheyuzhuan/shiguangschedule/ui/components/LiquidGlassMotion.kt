@@ -52,16 +52,20 @@ internal class DampedDragAnimation(
     visibilityThreshold: Float,
     initialScale: Float,
     private val pressedScale: Float,
+    elasticity: Float,
     private val onDragStarted: DampedDragAnimation.(position: Offset) -> Unit,
     private val onDragStopped: DampedDragAnimation.() -> Unit,
     private val onDrag: DampedDragAnimation.(size: IntSize, dragAmount: Offset) -> Unit
 ) {
     private val restingScale = initialScale
-    private val valueAnimationSpec = spring<Float>(1f, 1000f, visibilityThreshold)
-    private val velocityAnimationSpec = spring<Float>(0.5f, 300f, visibilityThreshold * 10f)
-    private val pressProgressAnimationSpec = spring<Float>(1f, 1000f, 0.001f)
-    private val scaleXAnimationSpec = spring<Float>(0.6f, 250f, 0.001f)
-    private val scaleYAnimationSpec = spring<Float>(0.7f, 250f, 0.001f)
+    private val elasticityFactor = elasticity.coerceIn(0.6f, 1.2f)
+    private fun damping(base: Float): Float = (base / elasticityFactor).coerceIn(0.35f, 1.7f)
+
+    private val valueAnimationSpec = spring<Float>(damping(1f), 1000f, visibilityThreshold)
+    private val velocityAnimationSpec = spring<Float>(damping(0.5f), 300f, visibilityThreshold * 10f)
+    private val pressProgressAnimationSpec = spring<Float>(damping(1f), 1000f, 0.001f)
+    private val scaleXAnimationSpec = spring<Float>(damping(0.6f), 250f, 0.001f)
+    private val scaleYAnimationSpec = spring<Float>(damping(0.7f), 250f, 0.001f)
 
     private val valueAnimation = Animatable(initialValue, visibilityThreshold)
     private val velocityAnimation = Animatable(0f, 5f)
@@ -158,10 +162,12 @@ internal class DampedDragAnimation(
 
 internal class InteractiveHighlight(
     private val animationScope: CoroutineScope,
+    elasticity: Float,
     private val position: (size: Size, offset: Offset) -> Offset = { _, offset -> offset }
 ) {
-    private val pressProgressAnimationSpec = spring<Float>(0.5f, 300f, 0.001f)
-    private val positionAnimationSpec = spring(0.5f, 300f, Offset.VisibilityThreshold)
+    private val dampingRatio = (0.5f / elasticity.coerceIn(0.6f, 1.2f)).coerceIn(0.35f, 1.7f)
+    private val pressProgressAnimationSpec = spring<Float>(dampingRatio, 300f, 0.001f)
+    private val positionAnimationSpec = spring(dampingRatio, 300f, Offset.VisibilityThreshold)
     private val pressProgressAnimation = Animatable(0f, 0.001f)
     private val positionAnimation =
         Animatable(Offset.Zero, Offset.VectorConverter, Offset.VisibilityThreshold)

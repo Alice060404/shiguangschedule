@@ -61,11 +61,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.xingheyuzhuan.shiguangschedule.Destination
+import com.xingheyuzhuan.shiguangschedule.data.model.LiquidGlassNavigationSettings
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.BorderTypeProto
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.ScheduleModeProto
 import com.xingheyuzhuan.shiguangschedule.ui.components.AdvancedColorPicker
 import com.xingheyuzhuan.shiguangschedule.ui.components.ColorPickerConfig
 import com.xingheyuzhuan.shiguangschedule.ui.components.SliderWithInputField
+import com.xingheyuzhuan.shiguangschedule.ui.components.supportsLiquidGlassNavigation
 import com.xingheyuzhuan.shiguangschedule.ui.schedule.components.ScheduleGrid
 import com.xingheyuzhuan.shiguangschedule.ui.schedule.components.ScheduleGridActions
 import com.xingheyuzhuan.shiguangschedule.ui.schedule.components.ScheduleGridStyleComposed
@@ -87,6 +89,7 @@ import shiguangschedule.shared.generated.resources.action_cancel
 import shiguangschedule.shared.generated.resources.action_confirm
 import shiguangschedule.shared.generated.resources.action_reset
 import shiguangschedule.shared.generated.resources.action_reset_style
+import shiguangschedule.shared.generated.resources.action_reset_liquid_glass
 import shiguangschedule.shared.generated.resources.border_type_dashed
 import shiguangschedule.shared.generated.resources.border_type_solid
 import shiguangschedule.shared.generated.resources.check_24px
@@ -107,6 +110,14 @@ import shiguangschedule.shared.generated.resources.label_hide_location
 import shiguangschedule.shared.generated.resources.label_hide_section_time
 import shiguangschedule.shared.generated.resources.label_hide_teacher
 import shiguangschedule.shared.generated.resources.label_inner_padding
+import shiguangschedule.shared.generated.resources.label_liquid_glass_animation_elasticity
+import shiguangschedule.shared.generated.resources.label_liquid_glass_blur
+import shiguangschedule.shared.generated.resources.label_liquid_glass_chromatic_aberration
+import shiguangschedule.shared.generated.resources.label_liquid_glass_height
+import shiguangschedule.shared.generated.resources.label_liquid_glass_opacity_dark
+import shiguangschedule.shared.generated.resources.label_liquid_glass_opacity_light
+import shiguangschedule.shared.generated.resources.label_liquid_glass_refraction
+import shiguangschedule.shared.generated.resources.label_liquid_glass_width
 import shiguangschedule.shared.generated.resources.label_none
 import shiguangschedule.shared.generated.resources.label_opacity
 import shiguangschedule.shared.generated.resources.label_outer_padding
@@ -127,6 +138,7 @@ import shiguangschedule.shared.generated.resources.style_category_color_scheme
 import shiguangschedule.shared.generated.resources.style_category_course_block
 import shiguangschedule.shared.generated.resources.style_category_grid_size
 import shiguangschedule.shared.generated.resources.style_category_interface
+import shiguangschedule.shared.generated.resources.style_category_liquid_glass_navigation
 import shiguangschedule.shared.generated.resources.style_category_other
 import shiguangschedule.shared.generated.resources.title_dark_color_pool
 import shiguangschedule.shared.generated.resources.title_light_color_pool
@@ -136,6 +148,7 @@ import kotlin.time.Clock
 @Composable
 fun SettingsListContent(
     currentStyle: ScheduleGridStyleComposed,
+    liquidGlassSettings: LiquidGlassNavigationSettings,
     viewModel: StyleSettingsViewModel,
     isPreviewDark: Boolean,
     wallpaperPath: String? = null,
@@ -239,6 +252,16 @@ fun SettingsListContent(
             onReset = { viewModel.updatePageTextColor(null) }
         )
 
+        if (supportsLiquidGlassNavigation) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+            LiquidGlassNavigationSettingsSection(
+                settings = liquidGlassSettings,
+                isPreviewDark = isPreviewDark,
+                onSettingsChange = { viewModel.updateLiquidGlassNavigation(it) },
+                onReset = viewModel::resetLiquidGlassNavigation
+            )
+        }
+
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         Text(stringResource(Res.string.style_category_grid_size), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
@@ -288,6 +311,94 @@ fun SettingsListContent(
             colors = currentStyle.courseColorMaps.map { it.dark },
             onEditColor = { onPick(true, it) }
         )
+    }
+}
+
+@Composable
+private fun LiquidGlassNavigationSettingsSection(
+    settings: LiquidGlassNavigationSettings,
+    isPreviewDark: Boolean,
+    onSettingsChange: (LiquidGlassNavigationSettings) -> Unit,
+    onReset: () -> Unit
+) {
+    Text(
+        text = stringResource(Res.string.style_category_liquid_glass_navigation),
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary
+    )
+
+    SliderWithInputField(
+        label = stringResource(Res.string.label_liquid_glass_width),
+        value = settings.widthDp,
+        range = LiquidGlassNavigationSettings.MIN_WIDTH_DP..LiquidGlassNavigationSettings.MAX_WIDTH_DP
+    ) { onSettingsChange(settings.copy(widthDp = it)) }
+
+    SliderWithInputField(
+        label = stringResource(Res.string.label_liquid_glass_height),
+        value = settings.heightDp,
+        range = LiquidGlassNavigationSettings.MIN_HEIGHT_DP..LiquidGlassNavigationSettings.MAX_HEIGHT_DP
+    ) { onSettingsChange(settings.copy(heightDp = it)) }
+
+    SliderWithInputField(
+        label = stringResource(Res.string.label_liquid_glass_blur),
+        value = settings.blurRadiusDp,
+        range = LiquidGlassNavigationSettings.MIN_BLUR_RADIUS_DP..
+            LiquidGlassNavigationSettings.MAX_BLUR_RADIUS_DP
+    ) { onSettingsChange(settings.copy(blurRadiusDp = it)) }
+
+    val opacity = if (isPreviewDark) settings.opacity.dark else settings.opacity.light
+    SliderWithInputField(
+        label = stringResource(
+            if (isPreviewDark) {
+                Res.string.label_liquid_glass_opacity_dark
+            } else {
+                Res.string.label_liquid_glass_opacity_light
+            }
+        ),
+        value = opacity,
+        range = LiquidGlassNavigationSettings.MIN_OPACITY..LiquidGlassNavigationSettings.MAX_OPACITY,
+        stepValue = 0.05f
+    ) { value ->
+        onSettingsChange(
+            settings.copy(
+                opacity = if (isPreviewDark) {
+                    settings.opacity.copy(dark = value)
+                } else {
+                    settings.opacity.copy(light = value)
+                }
+            )
+        )
+    }
+
+    SliderWithInputField(
+        label = stringResource(Res.string.label_liquid_glass_refraction),
+        value = settings.refractionStrength,
+        range = LiquidGlassNavigationSettings.MIN_REFRACTION_STRENGTH..
+            LiquidGlassNavigationSettings.MAX_REFRACTION_STRENGTH,
+        stepValue = 0.05f
+    ) { onSettingsChange(settings.copy(refractionStrength = it)) }
+
+    SliderWithInputField(
+        label = stringResource(Res.string.label_liquid_glass_animation_elasticity),
+        value = settings.animationElasticity,
+        range = LiquidGlassNavigationSettings.MIN_ANIMATION_ELASTICITY..
+            LiquidGlassNavigationSettings.MAX_ANIMATION_ELASTICITY,
+        stepValue = 0.1f
+    ) { onSettingsChange(settings.copy(animationElasticity = it)) }
+
+    StyleSwitchItem(
+        label = stringResource(Res.string.label_liquid_glass_chromatic_aberration),
+        checked = settings.chromaticAberration,
+        onCheckedChange = {
+            onSettingsChange(settings.copy(chromaticAberration = it))
+        }
+    )
+
+    OutlinedButton(
+        onClick = onReset,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(stringResource(Res.string.action_reset_liquid_glass))
     }
 }
 

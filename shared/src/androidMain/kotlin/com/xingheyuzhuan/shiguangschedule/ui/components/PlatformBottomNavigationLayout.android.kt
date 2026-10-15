@@ -26,6 +26,9 @@ import androidx.compose.ui.unit.dp
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.xingheyuzhuan.shiguangschedule.Destination
+import com.xingheyuzhuan.shiguangschedule.data.model.LiquidGlassNavigationSettings
+
+internal actual val supportsLiquidGlassNavigation: Boolean = true
 
 @Composable
 internal actual fun PlatformBottomNavigationLayout(
@@ -35,6 +38,7 @@ internal actual fun PlatformBottomNavigationLayout(
     showNavigation: Boolean,
     navHideFractionProvider: () -> Float,
     isTransparent: Boolean,
+    liquidGlassSettings: LiquidGlassNavigationSettings,
     navigationModifier: Modifier,
     content: @Composable (PaddingValues) -> Unit
 ) {
@@ -43,7 +47,9 @@ internal actual fun PlatformBottomNavigationLayout(
     val navBarBottomInsetPx = with(density) {
         WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding().toPx()
     }
-    val navBarTotalHeightPx = with(density) { 88.dp.toPx() } + navBarBottomInsetPx
+    val navBarTotalHeightPx = with(density) {
+        (liquidGlassSettings.heightDp + 24f).dp.toPx()
+    } + navBarBottomInsetPx
 
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -85,8 +91,9 @@ internal actual fun PlatformBottomNavigationLayout(
                     onTabSelected = onTabSelected,
                     backdrop = backdrop,
                     isTransparent = isTransparent,
+                    settings = liquidGlassSettings,
                     modifier = Modifier
-                        .widthIn(max = 320.dp)
+                        .widthIn(max = liquidGlassSettings.widthDp.dp)
                         .fillMaxWidth()
                 )
             }

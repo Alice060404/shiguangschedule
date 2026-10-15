@@ -8,6 +8,7 @@ import com.xingheyuzhuan.shiguangschedule.data.db.main.CourseWithWeeks
 import com.xingheyuzhuan.shiguangschedule.data.db.main.TimeSlot
 import com.xingheyuzhuan.shiguangschedule.data.model.AppSettingsModel
 import com.xingheyuzhuan.shiguangschedule.data.model.DualColor
+import com.xingheyuzhuan.shiguangschedule.data.model.LiquidGlassNavigationSettings
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.BorderTypeProto
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.ScheduleModeProto
 import com.xingheyuzhuan.shiguangschedule.data.repository.AppSettingsRepository
@@ -226,6 +227,14 @@ class StyleSettingsViewModel(
     fun resetEverything() = viewModelScope.launch(Dispatchers.IO) {
         removeAllWallpapers()
         styleRepository.resetAllStyleSettings()
+    }
+
+    fun updateLiquidGlassNavigation(settings: LiquidGlassNavigationSettings) = viewModelScope.launch {
+        appSettingsRepository.updateLiquidGlassNavigationSettings(settings)
+    }
+
+    fun resetLiquidGlassNavigation() {
+        updateLiquidGlassNavigation(LiquidGlassNavigationSettings())
     }
 
     // --- 尺寸与边距 API ---

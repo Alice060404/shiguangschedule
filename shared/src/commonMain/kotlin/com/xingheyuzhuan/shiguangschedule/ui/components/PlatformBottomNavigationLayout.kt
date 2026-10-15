@@ -49,6 +49,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xingheyuzhuan.shiguangschedule.Destination
+import com.xingheyuzhuan.shiguangschedule.data.model.LiquidGlassNavigationSettings
+
+internal expect val supportsLiquidGlassNavigation: Boolean
 
 @Composable
 internal expect fun PlatformBottomNavigationLayout(
@@ -58,6 +61,7 @@ internal expect fun PlatformBottomNavigationLayout(
     showNavigation: Boolean,
     navHideFractionProvider: () -> Float,
     isTransparent: Boolean,
+    liquidGlassSettings: LiquidGlassNavigationSettings,
     navigationModifier: Modifier,
     content: @Composable (PaddingValues) -> Unit
 )
@@ -71,6 +75,7 @@ internal fun DefaultBottomNavigationLayout(
     showNavigation: Boolean,
     navHideFractionProvider: () -> Float,
     isTransparent: Boolean,
+    liquidGlassSettings: LiquidGlassNavigationSettings,
     navigationModifier: Modifier,
     content: @Composable (PaddingValues) -> Unit
 ) {

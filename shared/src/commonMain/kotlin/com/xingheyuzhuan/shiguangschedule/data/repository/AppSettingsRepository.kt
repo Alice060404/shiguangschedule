@@ -7,6 +7,7 @@ import com.xingheyuzhuan.shiguangschedule.data.db.main.CourseTableConfig
 import com.xingheyuzhuan.shiguangschedule.data.db.main.CourseTableConfigDao
 import com.xingheyuzhuan.shiguangschedule.data.db.main.CourseTableDao
 import com.xingheyuzhuan.shiguangschedule.data.model.AppSettingsModel
+import com.xingheyuzhuan.shiguangschedule.data.model.LiquidGlassNavigationSettings
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.ScheduleGridStyleProto
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -182,7 +183,31 @@ class AppSettingsRepository(
             prefs[AppSettingsModel.KEY_CUSTOM_DARK_PRIMARY] = newSettings.customPrimaryColor.dark
             prefs[AppSettingsModel.KEY_BACKGROUND_IMAGE_PATH_LIGHT] = newSettings.backgroundImagePath.light
             prefs[AppSettingsModel.KEY_BACKGROUND_IMAGE_PATH_DARK] = newSettings.backgroundImagePath.dark
+            val liquidGlass = newSettings.liquidGlassNavigation.sanitized()
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_WIDTH_DP] = liquidGlass.widthDp
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_HEIGHT_DP] = liquidGlass.heightDp
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_BLUR_RADIUS_DP] = liquidGlass.blurRadiusDp
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_LIGHT_OPACITY] = liquidGlass.opacity.light
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_DARK_OPACITY] = liquidGlass.opacity.dark
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_REFRACTION_STRENGTH] = liquidGlass.refractionStrength
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_ANIMATION_ELASTICITY] = liquidGlass.animationElasticity
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_CHROMATIC_ABERRATION] = liquidGlass.chromaticAberration
             prefs[AppSettingsModel.KEY_DEVELOPER_MODE_ENABLED] = newSettings.developerModeEnabled
+        }
+    }
+
+    /** 原子更新液态玻璃导航栏参数，避免覆盖其他应用设置。 */
+    suspend fun updateLiquidGlassNavigationSettings(settings: LiquidGlassNavigationSettings) {
+        val sanitized = settings.sanitized()
+        dataStore.edit { prefs ->
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_WIDTH_DP] = sanitized.widthDp
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_HEIGHT_DP] = sanitized.heightDp
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_BLUR_RADIUS_DP] = sanitized.blurRadiusDp
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_LIGHT_OPACITY] = sanitized.opacity.light
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_DARK_OPACITY] = sanitized.opacity.dark
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_REFRACTION_STRENGTH] = sanitized.refractionStrength
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_ANIMATION_ELASTICITY] = sanitized.animationElasticity
+            prefs[AppSettingsModel.KEY_LIQUID_GLASS_CHROMATIC_ABERRATION] = sanitized.chromaticAberration
         }
     }
 

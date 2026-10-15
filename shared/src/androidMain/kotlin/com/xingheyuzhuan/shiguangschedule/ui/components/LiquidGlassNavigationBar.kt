@@ -65,6 +65,7 @@ import com.kyant.backdrop.highlight.Highlight
 import com.kyant.backdrop.shadow.InnerShadow
 import com.kyant.backdrop.shadow.Shadow
 import com.xingheyuzhuan.shiguangschedule.Destination
+import com.xingheyuzhuan.shiguangschedule.data.model.LiquidGlassNavigationSettings
 import com.xingheyuzhuan.shiguangschedule.ui.theme.LocalIsDarkTheme
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -84,11 +85,13 @@ internal fun LiquidGlassNavigationBar(
     currentDestination: Destination,
     onTabSelected: (Destination) -> Unit,
     backdrop: Backdrop,
+    settings: LiquidGlassNavigationSettings,
     modifier: Modifier = Modifier,
     isTransparent: Boolean = false
 ) {
     if (navItems.isEmpty()) return
 
+    val glassSettings = settings.sanitized()
     val selectedIndex = navItems.indexOfFirst {
         currentDestination::class == it.destination::class
     }
@@ -98,9 +101,11 @@ internal fun LiquidGlassNavigationBar(
     val unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
     val containerColor = when {
         isTransparent -> Color.Transparent
-        isLightTheme -> MaterialTheme.colorScheme.surface.copy(alpha = 0.40f)
-        else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.46f)
+        isLightTheme -> MaterialTheme.colorScheme.surface.copy(alpha = glassSettings.opacity.light)
+        else -> MaterialTheme.colorScheme.surface.copy(alpha = glassSettings.opacity.dark)
     }
+    val barHeight = glassSettings.heightDp.dp
+    val indicatorHeight = (glassSettings.heightDp - 8f).dp
     val latestOnTabSelected by rememberUpdatedState(onTabSelected)
     val tabsBackdrop = rememberLayerBackdrop()
 
@@ -130,14 +135,22 @@ internal fun LiquidGlassNavigationBar(
         var currentIndex by remember {
             mutableIntStateOf(selectedIndex.coerceAtLeast(0))
         }
-        val dragAnimation = remember(animationScope, tabsCount, tabWidth, isLtr) {
+        val dragAnimation = remember(
+            animationScope,
+            tabsCount,
+            tabWidth,
+            isLtr,
+            glassSettings.animationElasticity,
+            glassSettings.heightDp
+        ) {
             DampedDragAnimation(
                 animationScope = animationScope,
                 initialValue = currentIndex.toFloat(),
                 valueRange = 0f..(tabsCount - 1).toFloat(),
                 visibilityThreshold = 0.001f,
                 initialScale = 1f,
-                pressedScale = 78f / 56f,
+                pressedScale = (glassSettings.heightDp + 14f) / (glassSettings.heightDp - 8f),
+                elasticity = glassSettings.animationElasticity,
                 onDragStarted = {},
                 onDragStopped = {
                     val targetIndex = targetValue.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
@@ -145,7 +158,15 @@ internal fun LiquidGlassNavigationBar(
                     animateToValue(targetIndex.toFloat())
                     latestOnTabSelected(navItems[targetIndex].destination)
                     animationScope.launch {
-                        offsetAnimation.animateTo(0f, spring(1f, 300f, 0.5f))
+                        offsetAnimation.animateTo(
+                            0f,
+                            spring(
+                                dampingRatio = (1f / glassSettings.animationElasticity)
+                                    .coerceIn(0.5f, 1.7f),
+                                stiffness = 300f,
+                                visibilityThreshold = 0.5f
+                            )
+                        )
                     }
                 },
                 onDrag = { _, dragAmount ->
@@ -170,9 +191,15 @@ internal fun LiquidGlassNavigationBar(
             }
         }
 
-        val interactiveHighlight = remember(animationScope, tabWidth, isLtr) {
+        val interactiveHighlight = remember(
+            animationScope,
+            tabWidth,
+            isLtr,
+            glassSettings.animationElasticity
+        ) {
             InteractiveHighlight(
                 animationScope = animationScope,
+                elasticity = glassSettings.animationElasticity,
                 position = { size, _ ->
                     Offset(
                         x = if (isLtr) {
@@ -226,8 +253,11 @@ internal fun LiquidGlassNavigationBar(
                     shape = { CircleShape },
                     effects = {
                         vibrancy()
-                        blur(8.dp.toPx())
-                        lens(24.dp.toPx(), 24.dp.toPx())
+                        blur(glassSettings.blurRadiusDp.dp.toPx())
+                        lens(
+                            24.dp.toPx() * glassSettings.refractionStrength,
+                            24.dp.toPx() * glassSettings.refractionStrength
+                        )
                     },
                     layerBlock = {
                         val progress = dragAnimation.pressProgress
@@ -238,7 +268,7 @@ internal fun LiquidGlassNavigationBar(
                     onDrawSurface = { drawRect(containerColor) }
                 )
                 .then(interactiveHighlight.modifier)
-                .height(64.dp)
+                .height(barHeight)
                 .fillMaxWidth()
                 .padding(4.dp)
                 .selectableGroup(),
@@ -263,10 +293,12 @@ internal fun LiquidGlassNavigationBar(
                         effects = {
                             val progress = dragAnimation.pressProgress
                             vibrancy()
-                            blur(8.dp.toPx())
+                            blur(glassSettings.blurRadiusDp.dp.toPx())
                             lens(
-                                refractionHeight = 24.dp.toPx() * progress,
-                                refractionAmount = 24.dp.toPx() * progress
+                                refractionHeight = 24.dp.toPx() * progress *
+                                    glassSettings.refractionStrength,
+                                refractionAmount = 24.dp.toPx() * progress *
+                                    glassSettings.refractionStrength
                             )
                         },
                         highlight = {
@@ -275,7 +307,7 @@ internal fun LiquidGlassNavigationBar(
                         onDrawSurface = { drawRect(containerColor) }
                     )
                     .then(interactiveHighlight.modifier)
-                    .height(56.dp)
+                    .height(indicatorHeight)
                     .fillMaxWidth()
                     .padding(horizontal = 4.dp)
                     .graphicsLayer(colorFilter = ColorFilter.tint(accentColor)),
@@ -303,9 +335,11 @@ internal fun LiquidGlassNavigationBar(
                     effects = {
                         val progress = dragAnimation.pressProgress
                         lens(
-                            refractionHeight = 10.dp.toPx() * progress,
-                            refractionAmount = 14.dp.toPx() * progress,
-                            chromaticAberration = true
+                            refractionHeight = 10.dp.toPx() * progress *
+                                glassSettings.refractionStrength,
+                            refractionAmount = 14.dp.toPx() * progress *
+                                glassSettings.refractionStrength,
+                            chromaticAberration = glassSettings.chromaticAberration
                         )
                     },
                     highlight = {
@@ -336,7 +370,7 @@ internal fun LiquidGlassNavigationBar(
                         drawRect(Color.Black.copy(alpha = 0.03f * progress))
                     }
                 )
-                .height(56.dp)
+                .height(indicatorHeight)
                 .fillMaxWidth(1f / tabsCount)
         )
     }

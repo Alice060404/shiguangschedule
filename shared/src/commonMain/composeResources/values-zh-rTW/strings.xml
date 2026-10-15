@@ -452,6 +452,16 @@
     <string name="item_personalization">客製化配置</string>
     <string name="desc_personalization">調整課表格子高度、圓角、間距及透明度</string>
     <string name="style_category_interface">介面顯示</string>
+    <string name="style_category_liquid_glass_navigation">液態玻璃底部導覽列</string>
+    <string name="label_liquid_glass_width">導覽列寬度 (dp)</string>
+    <string name="label_liquid_glass_height">導覽列高度 (dp)</string>
+    <string name="label_liquid_glass_blur">模糊程度 (dp)</string>
+    <string name="label_liquid_glass_opacity_light">玻璃透明度（淺色模式）</string>
+    <string name="label_liquid_glass_opacity_dark">玻璃透明度（深色模式）</string>
+    <string name="label_liquid_glass_refraction">折射強度</string>
+    <string name="label_liquid_glass_animation_elasticity">動畫彈性</string>
+    <string name="label_liquid_glass_chromatic_aberration">色散效果</string>
+    <string name="action_reset_liquid_glass">恢復液態玻璃預設設定</string>
     <string name="style_category_grid_size">網格尺寸</string>
     <string name="style_category_course_block">課程塊配置</string>
     <string name="style_category_color_scheme">顏色方案 (點擊圓形編輯)</string>

@@ -229,6 +229,7 @@ fun StyleSettingsScreen(
                     ) {
                         SettingsListContent(
                             currentStyle = currentStyle,
+                            liquidGlassSettings = currentAppSettings.liquidGlassNavigation,
                             viewModel = viewModel,
                             isPreviewDark = isPreviewDark,
                             wallpaperPath = wallpaperPath,
@@ -263,6 +264,7 @@ fun StyleSettingsScreen(
                     ) {
                         SettingsListContent(
                             currentStyle = currentStyle,
+                            liquidGlassSettings = currentAppSettings.liquidGlassNavigation,
                             viewModel = viewModel,
                             isPreviewDark = isPreviewDark,
                             wallpaperPath = wallpaperPath,

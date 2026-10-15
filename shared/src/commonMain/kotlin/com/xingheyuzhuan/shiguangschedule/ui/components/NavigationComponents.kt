@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xingheyuzhuan.shiguangschedule.Destination
+import com.xingheyuzhuan.shiguangschedule.data.model.LiquidGlassNavigationSettings
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import shiguangschedule.shared.generated.resources.Res
@@ -62,6 +63,7 @@ fun AdaptiveNavigationScaffold(
     showNavigation: Boolean = true,
     navHideFractionProvider: () -> Float = { 0f },
     isTransparent: Boolean = false,
+    liquidGlassSettings: LiquidGlassNavigationSettings = LiquidGlassNavigationSettings(),
     navigationModifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit
 ) {
@@ -152,6 +154,7 @@ fun AdaptiveNavigationScaffold(
                     showNavigation = showNavigation,
                     navHideFractionProvider = navHideFractionProvider,
                     isTransparent = isTransparent,
+                    liquidGlassSettings = liquidGlassSettings,
                     navigationModifier = navigationModifier,
                     content = content
                 )

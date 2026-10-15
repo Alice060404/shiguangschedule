@@ -3,6 +3,7 @@ package com.xingheyuzhuan.shiguangschedule.data.model
 import androidx.compose.ui.graphics.toArgb
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -29,6 +30,67 @@ data class LightDarkValue<T>(
     val light: T,
     val dark: T
 )
+
+/** Android 液态玻璃底部导航栏的可调参数。 */
+data class LiquidGlassNavigationSettings(
+    val widthDp: Float = DEFAULT_WIDTH_DP,
+    val heightDp: Float = DEFAULT_HEIGHT_DP,
+    val blurRadiusDp: Float = DEFAULT_BLUR_RADIUS_DP,
+    val opacity: LightDarkValue<Float> = LightDarkValue(
+        light = DEFAULT_LIGHT_OPACITY,
+        dark = DEFAULT_DARK_OPACITY
+    ),
+    val refractionStrength: Float = DEFAULT_REFRACTION_STRENGTH,
+    val animationElasticity: Float = DEFAULT_ANIMATION_ELASTICITY,
+    val chromaticAberration: Boolean = DEFAULT_CHROMATIC_ABERRATION
+) {
+    fun sanitized(): LiquidGlassNavigationSettings = copy(
+        widthDp = widthDp.coerceIn(MIN_WIDTH_DP, MAX_WIDTH_DP),
+        heightDp = heightDp.coerceIn(MIN_HEIGHT_DP, MAX_HEIGHT_DP),
+        blurRadiusDp = blurRadiusDp.coerceIn(MIN_BLUR_RADIUS_DP, MAX_BLUR_RADIUS_DP),
+        opacity = LightDarkValue(
+            light = opacity.light.coerceIn(MIN_OPACITY, MAX_OPACITY),
+            dark = opacity.dark.coerceIn(MIN_OPACITY, MAX_OPACITY)
+        ),
+        refractionStrength = refractionStrength.coerceIn(
+            MIN_REFRACTION_STRENGTH,
+            MAX_REFRACTION_STRENGTH
+        ),
+        animationElasticity = animationElasticity.coerceIn(
+            MIN_ANIMATION_ELASTICITY,
+            MAX_ANIMATION_ELASTICITY
+        )
+    )
+
+    companion object {
+        const val MIN_WIDTH_DP = 280f
+        const val MAX_WIDTH_DP = 360f
+        const val DEFAULT_WIDTH_DP = 320f
+
+        const val MIN_HEIGHT_DP = 56f
+        const val MAX_HEIGHT_DP = 72f
+        const val DEFAULT_HEIGHT_DP = 64f
+
+        const val MIN_BLUR_RADIUS_DP = 0f
+        const val MAX_BLUR_RADIUS_DP = 12f
+        const val DEFAULT_BLUR_RADIUS_DP = 8f
+
+        const val MIN_OPACITY = 0.20f
+        const val MAX_OPACITY = 0.65f
+        const val DEFAULT_LIGHT_OPACITY = 0.40f
+        const val DEFAULT_DARK_OPACITY = 0.46f
+
+        const val MIN_REFRACTION_STRENGTH = 0f
+        const val MAX_REFRACTION_STRENGTH = 1f
+        const val DEFAULT_REFRACTION_STRENGTH = 1f
+
+        const val MIN_ANIMATION_ELASTICITY = 0.6f
+        const val MAX_ANIMATION_ELASTICITY = 1.2f
+        const val DEFAULT_ANIMATION_ELASTICITY = 1f
+
+        const val DEFAULT_CHROMATIC_ABERRATION = true
+    }
+}
 
 /**
  * 节假日/调休 数据结构
@@ -155,6 +217,9 @@ data class AppSettingsModel(
         dark = ""
     ),
 
+    /** Android 液态玻璃底部导航栏样式。 */
+    val liquidGlassNavigation: LiquidGlassNavigationSettings = LiquidGlassNavigationSettings(),
+
     /** 开发者功能总开关（默认关闭） */
     val developerModeEnabled: Boolean = false,
 ) {
@@ -194,6 +259,22 @@ data class AppSettingsModel(
         val KEY_BACKGROUND_IMAGE_PATH_LIGHT = stringPreferencesKey("background_image_path_light")
         /** 深色模式背景壁纸路径的存储键 */
         val KEY_BACKGROUND_IMAGE_PATH_DARK = stringPreferencesKey("background_image_path_dark")
+        /** 液态玻璃导航栏最大宽度（dp） */
+        val KEY_LIQUID_GLASS_WIDTH_DP = floatPreferencesKey("liquid_glass_width_dp")
+        /** 液态玻璃导航栏高度（dp） */
+        val KEY_LIQUID_GLASS_HEIGHT_DP = floatPreferencesKey("liquid_glass_height_dp")
+        /** 液态玻璃模糊半径（dp） */
+        val KEY_LIQUID_GLASS_BLUR_RADIUS_DP = floatPreferencesKey("liquid_glass_blur_radius_dp")
+        /** 液态玻璃浅色模式透明度 */
+        val KEY_LIQUID_GLASS_LIGHT_OPACITY = floatPreferencesKey("liquid_glass_light_opacity")
+        /** 液态玻璃深色模式透明度 */
+        val KEY_LIQUID_GLASS_DARK_OPACITY = floatPreferencesKey("liquid_glass_dark_opacity")
+        /** 液态玻璃折射强度 */
+        val KEY_LIQUID_GLASS_REFRACTION_STRENGTH = floatPreferencesKey("liquid_glass_refraction_strength")
+        /** 液态玻璃动画弹性 */
+        val KEY_LIQUID_GLASS_ANIMATION_ELASTICITY = floatPreferencesKey("liquid_glass_animation_elasticity")
+        /** 液态玻璃色散效果开关 */
+        val KEY_LIQUID_GLASS_CHROMATIC_ABERRATION = booleanPreferencesKey("liquid_glass_chromatic_aberration")
         /** 开发者模式总开关的存储键 */
         val KEY_DEVELOPER_MODE_ENABLED = booleanPreferencesKey("developer_mode_enabled")
 
@@ -244,6 +325,26 @@ data class AppSettingsModel(
                     light = prefs[KEY_BACKGROUND_IMAGE_PATH_LIGHT] ?: d.backgroundImagePath.light,
                     dark = prefs[KEY_BACKGROUND_IMAGE_PATH_DARK] ?: d.backgroundImagePath.dark
                 ),
+                liquidGlassNavigation = LiquidGlassNavigationSettings(
+                    widthDp = prefs[KEY_LIQUID_GLASS_WIDTH_DP]
+                        ?: d.liquidGlassNavigation.widthDp,
+                    heightDp = prefs[KEY_LIQUID_GLASS_HEIGHT_DP]
+                        ?: d.liquidGlassNavigation.heightDp,
+                    blurRadiusDp = prefs[KEY_LIQUID_GLASS_BLUR_RADIUS_DP]
+                        ?: d.liquidGlassNavigation.blurRadiusDp,
+                    opacity = LightDarkValue(
+                        light = prefs[KEY_LIQUID_GLASS_LIGHT_OPACITY]
+                            ?: d.liquidGlassNavigation.opacity.light,
+                        dark = prefs[KEY_LIQUID_GLASS_DARK_OPACITY]
+                            ?: d.liquidGlassNavigation.opacity.dark
+                    ),
+                    refractionStrength = prefs[KEY_LIQUID_GLASS_REFRACTION_STRENGTH]
+                        ?: d.liquidGlassNavigation.refractionStrength,
+                    animationElasticity = prefs[KEY_LIQUID_GLASS_ANIMATION_ELASTICITY]
+                        ?: d.liquidGlassNavigation.animationElasticity,
+                    chromaticAberration = prefs[KEY_LIQUID_GLASS_CHROMATIC_ABERRATION]
+                        ?: d.liquidGlassNavigation.chromaticAberration
+                ).sanitized(),
                 developerModeEnabled = prefs[KEY_DEVELOPER_MODE_ENABLED] ?: d.developerModeEnabled,
             )
         }

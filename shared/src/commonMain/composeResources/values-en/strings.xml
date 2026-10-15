@@ -456,6 +456,16 @@
     <string name="item_personalization">Personalization</string>
     <string name="desc_personalization">Adjust schedule grid height, corner radius, spacing, and opacity</string>
     <string name="style_category_interface">Interface</string>
+    <string name="style_category_liquid_glass_navigation">Liquid Glass Bottom Navigation</string>
+    <string name="label_liquid_glass_width">Navigation width (dp)</string>
+    <string name="label_liquid_glass_height">Navigation height (dp)</string>
+    <string name="label_liquid_glass_blur">Blur radius (dp)</string>
+    <string name="label_liquid_glass_opacity_light">Glass opacity (light mode)</string>
+    <string name="label_liquid_glass_opacity_dark">Glass opacity (dark mode)</string>
+    <string name="label_liquid_glass_refraction">Refraction strength</string>
+    <string name="label_liquid_glass_animation_elasticity">Animation elasticity</string>
+    <string name="label_liquid_glass_chromatic_aberration">Chromatic aberration</string>
+    <string name="action_reset_liquid_glass">Reset Liquid Glass defaults</string>
     <string name="style_category_grid_size">Grid Size</string>
     <string name="style_category_course_block">Course Block Settings</string>
     <string name="style_category_color_scheme">Color Scheme (Tap circle to edit)</string>
