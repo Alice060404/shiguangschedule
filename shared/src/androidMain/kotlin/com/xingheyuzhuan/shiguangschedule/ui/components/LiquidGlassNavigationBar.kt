@@ -70,7 +70,7 @@ private val IndicatorSpring = spring<Float>(
 )
 
 /**
- * Floating bottom navigation that samples the real screen content behind it.
+ * Android floating bottom navigation that samples the real screen content behind it.
  *
  * The visual treatment is based on the Backdrop catalog's LiquidBottomTabs,
  * while selection and navigation remain owned by the app's existing back stack.
