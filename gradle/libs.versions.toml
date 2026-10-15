@@ -43,6 +43,7 @@ koin-plugin = "1.1.0"
 coil = "3.5.0"
 aboutLibraries = "15.0.4"
 kgit = "1.0.3"
+backdrop = "2.0.1"
 
 
 [libraries]
@@ -114,6 +115,7 @@ kgit = { module = "io.github.xingheyuzhuan:kgit", version.ref = "kgit" }
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDateTime" }
+backdrop = { module = "io.github.kyant0:backdrop", version.ref = "backdrop" }
 
 # Koin 依赖注入
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }

@@ -55,6 +55,7 @@ kotlin {
                 implementation(libs.compose.animation)
                 implementation(libs.compose.components.resources)
                 implementation(libs.compose.ui.tooling.preview)
+                implementation(libs.backdrop)
 
                 // Dynamic Color 主题生成 (MaterialKolor)
                 implementation(libs.material.kolor)
