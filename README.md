@@ -90,6 +90,91 @@
 - 英语  
 -----
 
+## 构建项目
+
+本项目使用 Compose Multiplatform 和 Gradle Wrapper，包含 Android、Desktop (JVM) 和 iOS 三个平台。
+
+### 环境要求
+
+- JDK 21
+- Android Studio 及 Android SDK Platform 37（构建 Android 时需要）
+- macOS 及 Xcode（仅构建 iOS 时需要）
+- 首次构建需要连网下载 Gradle 和项目依赖
+
+先确认 Java 版本：
+
+```bash
+java -version
+```
+
+输出应为 Java 21。Linux 或 macOS 如果提示 `./gradlew: Permission denied`，先执行：
+
+```bash
+chmod +x gradlew
+```
+
+Windows 下将下文命令中的 `./gradlew` 替换为 `gradlew.bat`。
+
+### Android
+
+构建调试 APK：
+
+```bash
+./gradlew :androidApp:assembleDebug
+```
+
+产物位于 `androidApp/build/outputs/apk/debug/`。项目按 ABI 拆分 APK，会分别生成 `armeabi-v7a`、`arm64-v8a` 和 `x86_64` 版本。
+
+构建 Release APK：
+
+```bash
+./gradlew :androidApp:assembleRelease
+```
+
+产物位于 `androidApp/build/outputs/apk/release/`。本地 Release 默认使用调试签名，仅适合本地测试；正式发布需要按 `.github/workflows/ci-build.yml` 中的流程注入发布签名。
+
+### Desktop (JVM)
+
+直接运行桌面端：
+
+```bash
+./gradlew :desktopApp:run
+```
+
+编译桌面端：
+
+```bash
+./gradlew :desktopApp:build
+```
+
+生成当前操作系统的安装包：
+
+```bash
+./gradlew :desktopApp:renameDesktopPackage --no-configuration-cache
+```
+
+可生成的格式取决于构建时使用的操作系统：
+
+- Linux：`.deb` 和 `.rpm`
+- Windows：`.exe` 和 `.msi`
+- macOS：`.dmg` 和 `.pkg`
+
+安装包位于 `desktopApp/build/compose/binaries/main-release/` 对应的格式目录中。请在目标操作系统上构建对应安装包。
+
+### iOS
+
+iOS 只能在 macOS 上构建。使用 Xcode 打开项目：
+
+```bash
+open iosApp/iosApp.xcodeproj
+```
+
+在 Xcode 中选择模拟器或真机后运行。Xcode 的构建阶段会自动调用 `:shared:embedAndSignAppleFrameworkForXcode` 生成并签名共享框架。
+
+### 完整发布资源
+
+正式发布前还需要准备完整的学校离线资源和贡献者数据。项目 CI 会先执行 `prepare-resources`，再分别构建 Android 和各桌面系统产物，具体流程见 `.github/workflows/ci-build.yml`。
+
 ## 如何参与
 
 1. Fork 本仓库，提交你的改进或教务适配使用的可调用组件。
