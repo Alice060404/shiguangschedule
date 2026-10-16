@@ -123,18 +123,52 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: 解码签名密钥
+      - name: 解码并验证签名密钥
+        env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > androidApp/release.jks
+          set -euo pipefail
+
+        # 检查必要的 Secret
+        test -n "$KEYSTORE_BASE64"
+        test -n "$KEYSTORE_PASSWORD"
+        test -n "$KEY_ALIAS"
+
+        # 解码密钥库
+        printf '%s' "$KEYSTORE_BASE64" \
+          | base64 --decode > androidApp/release.jks
+
+        # 检查文件是否非空
+        test -s androidApp/release.jks
+
+        chmod 600 androidApp/release.jks
+
+        # 验证密钥库和别名
+        keytool -list \
+          -keystore androidApp/release.jks \
+          -storepass:env KEYSTORE_PASSWORD \
+          -alias "$KEY_ALIAS" \
+          > /dev/null
+
+        echo "Android 签名密钥验证通过" 
 
       - name: 构建 Release APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
+          set -euo pipefail
+
           chmod +x ./gradlew
-          ./gradlew assembleRelease \
-            -Pandroid.injected.signing.store.file="${{ github.workspace }}/androidApp/release.jks" \
-            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
-            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
-            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}" \
+
+          ./gradlew :androidApp:assembleRelease \
+            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/androidApp/release.jks" \
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD" \
             --stacktrace
 
       - name: 上传 APK
@@ -142,6 +176,7 @@ jobs:
         with:
           name: app-release-apk
           path: androidApp/build/outputs/apk/release/*.apk
+          if-no-files-found: error
           retention-days: 7
 
   build-desktop:

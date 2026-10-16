@@ -14,8 +14,11 @@ output-metadata.json
 *.hprof
 *.dm
 
+# android signing
 *.jks
 *.keystore
+*.p12
+*.pfx
 google-services.json
 
 *.iml
