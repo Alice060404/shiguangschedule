@@ -1,6 +1,9 @@
 name: CI Build
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -131,21 +134,21 @@ jobs:
         run: |
           set -euo pipefail
 
-        # 检查必要的 Secret
+          # 检查必要的 Secret
           test -n "$KEYSTORE_BASE64"
           test -n "$KEYSTORE_PASSWORD"
           test -n "$KEY_ALIAS"
 
-        # 解码密钥库
+          # 解码密钥库
           printf '%s' "$KEYSTORE_BASE64" \
             | base64 --decode > androidApp/release.jks
 
-        # 检查文件是否非空
+          # 检查文件是否非空
           test -s androidApp/release.jks
 
           chmod 600 androidApp/release.jks
 
-        # 验证密钥库和别名
+          # 验证密钥库和别名
           keytool -list \
             -keystore androidApp/release.jks \
             -storepass:env KEYSTORE_PASSWORD \
